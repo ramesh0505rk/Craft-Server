@@ -34,7 +34,7 @@ namespace CraftServer.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { message = "Invalid username or password " +ex });
+                return StatusCode(500, new { message = "Invalid username or password" });
             }
         }
 
