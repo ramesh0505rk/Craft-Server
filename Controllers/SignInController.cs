@@ -7,6 +7,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace CraftServer.Controllers
 {
@@ -43,7 +44,11 @@ namespace CraftServer.Controllers
             string userName = userCreds.UserName;
             string password = userCreds.Password;
 
-            var query = "SELECT * FROM Users where UserName = @UserName AND Password = @Password";
+            bool isEmail = Regex.IsMatch(userName, @"^[^@\s]+@[^@\s]+\.[^@\s]+$");
+
+            var query = isEmail
+                ? "SELECT * FROM Users where UserEmail = @UserName AND Password = @Password"
+                : "SELECT * FROM Users where UserName = @UserName AND Password = @Password";
             using var connection = _context.CreateConnection();
 
             var parameters = new { UserName = userName, Password = password };
