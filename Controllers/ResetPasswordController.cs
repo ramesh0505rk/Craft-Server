@@ -12,7 +12,7 @@ namespace CraftServer.Controllers
     [ApiController]
     public class ResetPasswordController : ControllerBase
     {
-        DbContext _context;
+        private DbContext _context;
         public ResetPasswordController(DbContext context)
         {
             _context = context;
