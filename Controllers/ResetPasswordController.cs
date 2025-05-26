@@ -32,6 +32,14 @@ namespace CraftServer.Controllers
                 }
 
                 var otp = new Random().Next(1000, 9999).ToString("D4");
+                var otpExpiry = DateTime.UtcNow.AddMinutes(10);
+
+                var resetInsertQuery = @"INSERT INTO PasswordResetOtps (UserID, Otp, ExpiryDate, IsUsed) VALUES
+                                       (@UserID, @Otp, @ExpiryDate, @IsUsed)";
+
+                await connection.ExecuteAsync(resetInsertQuery, new { UserID = user.UserID, Otp = otp, ExpiryDate = otpExpiry, IsUsed = 0 });
+
+                //await SendOtpEmail()
 
                 return Ok(new { message = "OTP sent successfully", otp = otp });
             }
@@ -39,6 +47,11 @@ namespace CraftServer.Controllers
             {
                 return BadRequest(new { message = "An error occurred while requesting OTP.", error = ex.Message });
             }
+        }
+
+        public async Task SendOtpEmail(string email, string otp)
+        {
+
         }
     }
 }
