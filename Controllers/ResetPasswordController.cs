@@ -39,7 +39,7 @@ namespace CraftServer.Controllers
 
                 await connection.ExecuteAsync(resetInsertQuery, new { UserID = user.UserID, Otp = otp, ExpiryDate = otpExpiry, IsUsed = 0 });
 
-                //await SendOtpEmail()
+                await SendOtpEmail(email, otp);
 
                 return Ok(new { message = "OTP sent successfully", otp = otp });
             }
