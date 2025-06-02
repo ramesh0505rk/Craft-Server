@@ -1,4 +1,5 @@
 ﻿using CraftServer.Context;
+using CraftServer.Data;
 using CraftServer.Models;
 using Dapper;
 using Microsoft.AspNetCore.Http;
@@ -53,6 +54,36 @@ namespace CraftServer.Controllers
             }
         }
 
+        [HttpPost("validateOtp")]
+        public async Task<IActionResult> ValidateOtp(ValidateOtpModel validateOtpModel)
+        {
+            try
+            {
+                string email = validateOtpModel.Email;
+                string otp = validateOtpModel.Otp;
+
+                using var connection = _context.CreateConnection();
+
+                var res = await connection.ExecuteScalarAsync<int>(Queries.ValidateOtp,
+                    new { Email = email, Otp = otp },
+                    commandType: System.Data.CommandType.StoredProcedure
+                );
+
+                if (res == 1)
+                {
+                    return Ok(new { message = "OTP is valid." });
+                }
+                else
+                {
+                    return BadRequest(new { message = "Invalid OTP or OTP has expired." });
+                }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = "An error occurred while validating OTP.", error = ex.Message });
+            }
+        }
+
         public async Task SendOtpEmail(string email, string otp)
         {
             var emailSettings = _config.GetSection("EmailSettings");
@@ -78,5 +109,11 @@ namespace CraftServer.Controllers
     public class UserEmail
     {
         public string Email { get; set; } = "";
+    }
+
+    public class ValidateOtpModel
+    {
+        public string Email { get; set; } = "";
+        public string Otp { get; set; } = "";
     }
 }
