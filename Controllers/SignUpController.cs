@@ -1,4 +1,5 @@
 ﻿using CraftServer.Context;
+using CraftServer.Data;
 using CraftServer.Models;
 using Dapper;
 using Microsoft.AspNetCore.Http;
@@ -26,14 +27,21 @@ namespace CraftServer.Controllers
         [HttpPost("getToken")]
         public async Task<IActionResult> SignUp(UserRegister userRegister)
         {
-            bool userExists = await CheckUserExists(userRegister);
-            if (!userExists)
+            try
             {
-                User user = await InsertUser(userRegister);
-                var token = GenerateToken(user);
-                return Ok(new { token = token });
+                bool userExists = await CheckUserExists(userRegister);
+                if (!userExists)
+                {
+                    User user = await InsertUser(userRegister);
+                    var token = GenerateToken(user);
+                    return Ok(new { token = token });
+                }
+                return StatusCode(500, new { messae = "A user with this email already exists" });
             }
-            return StatusCode(500, new { messae = "A user with this email already exists" });
+            catch (Exception e)
+            {
+                return BadRequest(new { message = "An error occurred while creating the user.", error = e.Message });
+            }
         }
 
         public async Task<User> InsertUser(UserRegister userRegister)
@@ -45,11 +53,10 @@ namespace CraftServer.Controllers
             string lastName = userRegister.LastName;
             string userEmail = userRegister.UserEmail;
 
-            var query = "INSERT INTO Users OUTPUT INSERTED.* VALUES(@UserID,@UserName,@Password,@FirstName,@LastName,@UserEmail)";
             var parameters = new { UserID = userID, UserName = userName, Password = password, FirstName = firstName, LastName = lastName, UserEmail = userEmail };
 
             using var connection = _context.CreateConnection();
-            return await connection.QuerySingleAsync<User>(query, parameters);
+            return await connection.QuerySingleAsync<User>(Queries.CreateUser, parameters);
 
         }
 
