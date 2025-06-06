@@ -84,6 +84,33 @@ namespace CraftServer.Controllers
             }
         }
 
+        [HttpPatch]
+        public async Task<IActionResult> ResetPasssword(ResetPasswordModel resetPasswordModel)
+        {
+            try
+            {
+                using var connection = _context.CreateConnection();
+                var resetParams = new
+                {
+                    UserEmail = resetPasswordModel.Email,
+                    NewPassword = resetPasswordModel.NewPassword,
+                    Otp = resetPasswordModel.Otp
+                };
+
+                var result = await connection.ExecuteAsync(Queries.ResetUserPassword, resetParams, commandType: System.Data.CommandType.StoredProcedure);
+
+                if (result > 0)
+                    return Ok(new { message = "Password reset successfully." });
+                else
+                    return BadRequest(new { message = "Failed to reset password. Please check your email or OTP." });
+
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = "An error occurred while resetting password.", error = ex.Message });
+            }
+        }
+
         public async Task SendOtpEmail(string email, string otp)
         {
             var emailSettings = _config.GetSection("EmailSettings");
